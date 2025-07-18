@@ -8,7 +8,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 
 import customtkinter
 import tkinter as tk
-from CTkMessagebox import CTkMessagebox # Importar CTkMessagebox do local correto
+from CTkMessagebox import CTkMessagebox
 
 from pynput import keyboard, mouse
 from pynput.mouse import Button
@@ -34,7 +34,6 @@ class SettingsDialog(customtkinter.CTkToplevel):
         main_frame = customtkinter.CTkFrame(self)
         main_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-        # shoot_delay
         customtkinter.CTkLabel(main_frame, text="Shoot Delay (s):").grid(row=0, column=0, sticky="w", padx=(10,5), pady=(10,2))
         self.shoot_delay_spinbox = customtkinter.CTkEntry(main_frame)
         self.shoot_delay_spinbox.insert(0, str(self.recoil_controller.settings.shoot_delay))
@@ -42,7 +41,6 @@ class SettingsDialog(customtkinter.CTkToplevel):
         self.shoot_delay_spinbox.bind("<Return>", self.update_settings_event)
         self.shoot_delay_spinbox.bind("<FocusOut>", self.update_settings_event)
 
-        # max_shots
         customtkinter.CTkLabel(main_frame, text="Max Shots:").grid(row=1, column=0, sticky="w", padx=(10,5), pady=(10,2))
         self.max_shots_spinbox = customtkinter.CTkEntry(main_frame)
         self.max_shots_spinbox.insert(0, str(self.recoil_controller.settings.max_shots))
@@ -50,7 +48,6 @@ class SettingsDialog(customtkinter.CTkToplevel):
         self.max_shots_spinbox.bind("<Return>", self.update_settings_event)
         self.max_shots_spinbox.bind("<FocusOut>", self.update_settings_event)
 
-        # smoothing_factor
         customtkinter.CTkLabel(main_frame, text="Smoothing Factor:").grid(row=2, column=0, sticky="w", padx=(10,5), pady=(10,2))
         self.smoothing_factor_spinbox = customtkinter.CTkEntry(main_frame)
         self.smoothing_factor_spinbox.insert(0, str(self.recoil_controller.settings.smoothing_factor))
@@ -58,7 +55,6 @@ class SettingsDialog(customtkinter.CTkToplevel):
         self.smoothing_factor_spinbox.bind("<Return>", self.update_settings_event)
         self.smoothing_factor_spinbox.bind("<FocusOut>", self.update_settings_event)
 
-        # sensitivity
         customtkinter.CTkLabel(main_frame, text="Sensitivity:").grid(row=3, column=0, sticky="w", padx=(10,5), pady=(10,2))
         self.sensitivity_spinbox = customtkinter.CTkEntry(main_frame)
         self.sensitivity_spinbox.insert(0, str(self.recoil_controller.settings.sensitivity))
@@ -66,7 +62,6 @@ class SettingsDialog(customtkinter.CTkToplevel):
         self.sensitivity_spinbox.bind("<Return>", self.update_settings_event)
         self.sensitivity_spinbox.bind("<FocusOut>", self.update_settings_event)
 
-        # max_movement
         customtkinter.CTkLabel(main_frame, text="Max Movement:").grid(row=4, column=0, sticky="w", padx=(10,5), pady=(10,2))
         self.max_movement_spinbox = customtkinter.CTkEntry(main_frame)
         self.max_movement_spinbox.insert(0, str(self.recoil_controller.settings.max_movement))
@@ -74,7 +69,6 @@ class SettingsDialog(customtkinter.CTkToplevel):
         self.max_movement_spinbox.bind("<Return>", self.update_settings_event)
         self.max_movement_spinbox.bind("<FocusOut>", self.update_settings_event)
 
-        # timeout
         customtkinter.CTkLabel(main_frame, text="Timeout (s):").grid(row=5, column=0, sticky="w", padx=(10,5), pady=(10,2))
         self.timeout_spinbox = customtkinter.CTkEntry(main_frame)
         self.timeout_spinbox.insert(0, str(self.recoil_controller.settings.timeout))
@@ -82,13 +76,11 @@ class SettingsDialog(customtkinter.CTkToplevel):
         self.timeout_spinbox.bind("<Return>", self.update_settings_event)
         self.timeout_spinbox.bind("<FocusOut>", self.update_settings_event)
 
-        # Hotkeys
         self.hotkey_capture_mode = False
         self.current_hotkey_field = None
 
         row_offset = 6
 
-        # Hotkey Primária 1
         customtkinter.CTkLabel(main_frame, text="Primary Weapon Hotkey 1:").grid(row=row_offset, column=0, sticky="w", padx=(10,5), pady=(10,2))
         self.primary_hotkey_input = customtkinter.CTkEntry(main_frame, state="readonly")
         self.primary_hotkey_input.grid(row=row_offset, column=1, sticky="ew", padx=(5,5), pady=(10,2))
@@ -99,7 +91,6 @@ class SettingsDialog(customtkinter.CTkToplevel):
         self.primary_hotkey_input.configure(state="readonly")
         row_offset += 1
 
-        # Hotkey Primária 2
         customtkinter.CTkLabel(main_frame, text="Primary Weapon Hotkey 2:").grid(row=row_offset, column=0, sticky="w", padx=(10,5), pady=(10,2))
         self.primary_hotkey_2_input = customtkinter.CTkEntry(main_frame, state="readonly")
         self.primary_hotkey_2_input.grid(row=row_offset, column=1, sticky="ew", padx=(5,5), pady=(10,2))
@@ -110,7 +101,6 @@ class SettingsDialog(customtkinter.CTkToplevel):
         self.primary_hotkey_2_input.configure(state="readonly")
         row_offset += 1
 
-        # Hotkey Secundária 1
         customtkinter.CTkLabel(main_frame, text="Secondary Weapon Hotkey 1:").grid(row=row_offset, column=0, sticky="w", padx=(10,5), pady=(10,2))
         self.secondary_hotkey_input = customtkinter.CTkEntry(main_frame, state="readonly")
         self.secondary_hotkey_input.grid(row=row_offset, column=1, sticky="ew", padx=(5,5), pady=(10,2))
@@ -121,7 +111,6 @@ class SettingsDialog(customtkinter.CTkToplevel):
         self.secondary_hotkey_input.configure(state="readonly")
         row_offset += 1
 
-        # Hotkey Secundária 2
         customtkinter.CTkLabel(main_frame, text="Secondary Weapon Hotkey 2:").grid(row=row_offset, column=0, sticky="w", padx=(10,5), pady=(10,2))
         self.secondary_hotkey_2_input = customtkinter.CTkEntry(main_frame, state="readonly")
         self.secondary_hotkey_2_input.grid(row=row_offset, column=1, sticky="ew", padx=(5,5), pady=(10,2))
@@ -162,7 +151,7 @@ class SettingsDialog(customtkinter.CTkToplevel):
 
         if self.setting_key_to_update in ["primary_weapon_hotkey", "secondary_weapon_hotkey", "primary_weapon_hotkey_2", "secondary_weapon_hotkey_2"]:
             self.main_app_instance.update_main_ui_recoil_values()
-            self.main_app_instance.save_settings() # Salvar configurações após qualquer alteração via UI
+            self.main_app_instance.save_settings()
         print(f"[DEBUG] Hotkey capture for {self.setting_key_to_update} finished with: {hotkey_string}")
 
     def process_captured_key(self, key_or_mouse_hotkey_string):
@@ -178,7 +167,7 @@ class SettingsDialog(customtkinter.CTkToplevel):
     def update_settings_event(self, event=None):
         self.update_settings()
         self.main_app_instance.update_main_ui_recoil_values()
-        self.main_app_instance.save_settings() # Salvar configurações após qualquer alteração via UI
+        self.main_app_instance.save_settings()
 
     def update_settings(self):
         try:
@@ -305,17 +294,14 @@ class AgentPresetDialog(customtkinter.CTkToplevel):
 
         main_frame.grid_columnconfigure(1, weight=1)
 
-        # Input para o nome do preset
         customtkinter.CTkLabel(main_frame, text="Preset Name:").grid(row=0, column=0, sticky="w", pady=5)
         self.preset_name_input = customtkinter.CTkEntry(main_frame, placeholder_text="Preset Name to Save")
         self.preset_name_input.grid(row=0, column=1, columnspan=2, sticky="ew", padx=5, pady=5)
 
-        # ComboBox para carregar presets existentes
         customtkinter.CTkLabel(main_frame, text="Load Existing Preset:").grid(row=1, column=0, sticky="w", pady=5)
         self.preset_combo_box = customtkinter.CTkOptionMenu(main_frame, values=["No preset found"], command=self.on_preset_selected)
         self.preset_combo_box.grid(row=1, column=1, columnspan=2, sticky="ew", padx=5, pady=5)
 
-        # Botões de carregar e salvar
         button_frame = customtkinter.CTkFrame(main_frame)
         button_frame.grid(row=2, column=0, columnspan=3, pady=10)
         button_frame.grid_columnconfigure((0,1,2), weight=1)
@@ -348,12 +334,12 @@ class AgentPresetDialog(customtkinter.CTkToplevel):
             self.preset_combo_box.configure(values=presets)
             self.preset_combo_box.set(presets[0])
             self.load_button.configure(state="normal")
-            self.delete_button.configure(state="normal") # Enable delete button if presets exist
+            self.delete_button.configure(state="normal")
         else:
             self.preset_combo_box.configure(values=["No preset found"])
             self.preset_combo_box.set("No preset found")
             self.load_button.configure(state="disabled")
-            self.delete_button.configure(state="disabled") # Disable delete button if no presets
+            self.delete_button.configure(state="disabled")
 
     def load_preset(self):
         selected_preset = self.preset_combo_box.get()
@@ -366,7 +352,7 @@ class AgentPresetDialog(customtkinter.CTkToplevel):
                             message=f"Are you sure you want to load the preset '{selected_preset}'?\nThis will overwrite current settings.",
                             option_1="No", option_2="Yes", icon="question")
         response = msg.get()
-        if response != "Yes": # Corrected to match button text
+        if response != "Yes":
             return
 
         agent_presets_dir = os.path.join(script_dir, "presets", self.agent_name.lower().replace(" ", "_"))
@@ -449,7 +435,7 @@ class AgentPresetDialog(customtkinter.CTkToplevel):
                 os.remove(preset_file_path)
                 msg = CTkMessagebox(title="Success", message=f"Preset '{selected_preset}' deleted successfully!", icon="info")
                 msg.get()
-                self.populate_presets_combobox() # Update combobox after deletion
+                self.populate_presets_combobox()
             else:
                 msg = CTkMessagebox(title="Error", message=f"Preset file not found: {preset_file_path}", icon="cancel")
                 msg.get()
@@ -477,7 +463,6 @@ class RecoilControllerApp(customtkinter.CTk):
 
         content_frame.grid_columnconfigure(0, weight=1)
 
-        # --- Sliders para Recuo da Arma Primária ---
         primary_weapon_group_box = customtkinter.CTkFrame(content_frame, border_width=2, corner_radius=10)
         primary_weapon_group_box.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
         primary_weapon_group_box.grid_columnconfigure(0, weight=1)
@@ -497,7 +482,6 @@ class RecoilControllerApp(customtkinter.CTk):
         self.primary_recoil_x_slider.set(0)
         self.primary_recoil_x_slider.grid(row=4, column=0, sticky="ew", padx=10, pady=(2,10))
 
-        # --- Sliders para Recuo da Arma Secundária ---
         secondary_weapon_group_box = customtkinter.CTkFrame(content_frame, border_width=2, corner_radius=10)
         secondary_weapon_group_box.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
         secondary_weapon_group_box.grid_columnconfigure(0, weight=1)
@@ -517,12 +501,10 @@ class RecoilControllerApp(customtkinter.CTk):
         self.secondary_recoil_x_slider.set(0)
         self.secondary_recoil_x_slider.grid(row=4, column=0, sticky="ew", padx=10, pady=(2,10))
 
-        # Checkbox para ativar/desativar arma secundária
         self.secondary_weapon_enabled_checkbox = customtkinter.CTkCheckBox(content_frame, text="Enable Secondary Weapon", command=self.toggle_secondary_weapon_enabled)
         self.secondary_weapon_enabled_checkbox.select() if self.recoil_controller.settings.secondary_weapon_enabled else self.secondary_weapon_enabled_checkbox.deselect()
         self.secondary_weapon_enabled_checkbox.grid(row=2, column=0, padx=10, pady=5, sticky="w")
 
-        # Botões de controle
         self.toggle_button = customtkinter.CTkButton(content_frame, text="Disabled", command=self.toggle_recoil, fg_color="#e83434", hover_color="#BE2B2B")
         self.toggle_button.grid(row=3, column=0, padx=10, pady=5, sticky="ew")
 
@@ -535,7 +517,7 @@ class RecoilControllerApp(customtkinter.CTk):
         self.recoil_active = False
         self.active_weapon = "primary"
 
-        self.update_main_ui_recoil_values() # Atualiza UI com configurações iniciais ou carregadas
+        self.update_main_ui_recoil_values()
 
         self.keyboard_listener = keyboard.Listener(on_press=self._on_key_press)
         self.keyboard_listener.start()
@@ -548,16 +530,16 @@ class RecoilControllerApp(customtkinter.CTk):
         self.recoil_controller.settings.secondary_weapon_enabled = is_checked
         self.recoil_controller.logger.info(f"Enable Secondary Weapon: {is_checked}")
         self.update_main_ui_recoil_values()
-        self.save_settings() # Save settings after checkbox change
+        self.save_settings()
 
     def _update_primary_recoil_y_from_slider_scaled(self, value):
         scaled_value = value / 100.0
         self.recoil_controller.settings.primary_recoil_y = scaled_value
-        self.primary_recoil_y_entry.delete(0, tk.END) # Clear existing text
-        self.primary_recoil_y_entry.insert(0, f"{scaled_value:.2f}") # Insert new scaled value
+        self.primary_recoil_y_entry.delete(0, tk.END)
+        self.primary_recoil_y_entry.insert(0, f"{scaled_value:.2f}")
         if self.active_weapon == "primary":
             self.recoil_controller.set_recoil_y(scaled_value)
-        self.save_settings() # Save settings after slider change
+        self.save_settings()
 
     def _update_primary_recoil_x_from_slider_scaled(self, value):
         scaled_value = value / 1000.0
@@ -566,7 +548,7 @@ class RecoilControllerApp(customtkinter.CTk):
         self.primary_recoil_x_entry.insert(0, f"{scaled_value:.3f}")
         if self.active_weapon == "primary":
             self.recoil_controller.set_recoil_x(scaled_value)
-        self.save_settings() # Save settings after slider change
+        self.save_settings()
 
     def _update_secondary_recoil_y_from_slider_scaled(self, value):
         scaled_value = value / 100.0
@@ -575,7 +557,7 @@ class RecoilControllerApp(customtkinter.CTk):
         self.secondary_recoil_y_entry.insert(0, f"{scaled_value:.2f}")
         if self.active_weapon == "secondary":
             self.recoil_controller.set_recoil_y(scaled_value)
-        self.save_settings() # Save settings after slider change
+        self.save_settings()
 
     def _update_secondary_recoil_x_from_slider_scaled(self, value):
         scaled_value = value / 1000.0
@@ -584,29 +566,29 @@ class RecoilControllerApp(customtkinter.CTk):
         self.secondary_recoil_x_entry.insert(0, f"{scaled_value:.3f}")
         if self.active_weapon == "secondary":
             self.recoil_controller.set_recoil_x(scaled_value)
-        self.save_settings() # Save settings after slider change
+        self.save_settings()
 
     def _update_primary_recoil_y_from_entry(self, event):
         try:
             value = float(self.primary_recoil_y_entry.get())
             self.recoil_controller.settings.primary_recoil_y = value
-            self.primary_recoil_y_slider.set(int(value * 100)) # Update slider
+            self.primary_recoil_y_slider.set(int(value * 100))
             if self.active_weapon == "primary":
                 self.recoil_controller.set_recoil_y(value)
-            self.save_settings() # Save settings after entry change
+            self.save_settings()
         except ValueError:
             CTkMessagebox(title="Error", message="Invalid value for Primary Recoil Y. Please enter a number.", icon="cancel").get()
             self.primary_recoil_y_entry.delete(0, tk.END)
-            self.primary_recoil_y_entry.insert(0, f"{self.recoil_controller.settings.primary_recoil_y:.2f}") # Revert to current setting
+            self.primary_recoil_y_entry.insert(0, f"{self.recoil_controller.settings.primary_recoil_y:.2f}")
 
     def _update_primary_recoil_x_from_entry(self, event):
         try:
             value = float(self.primary_recoil_x_entry.get())
             self.recoil_controller.settings.primary_recoil_x = value
-            self.primary_recoil_x_slider.set(int(value * 1000)) # Update slider
+            self.primary_recoil_x_slider.set(int(value * 1000))
             if self.active_weapon == "primary":
                 self.recoil_controller.set_recoil_x(value)
-            self.save_settings() # Save settings after entry change
+            self.save_settings()
         except ValueError:
             CTkMessagebox(title="Error", message="Invalid value for Primary Recoil X. Please enter a number.", icon="cancel").get()
             self.primary_recoil_x_entry.delete(0, tk.END)
@@ -616,10 +598,10 @@ class RecoilControllerApp(customtkinter.CTk):
         try:
             value = float(self.secondary_recoil_y_entry.get())
             self.recoil_controller.settings.secondary_recoil_y = value
-            self.secondary_recoil_y_slider.set(int(value * 100)) # Update slider
+            self.secondary_recoil_y_slider.set(int(value * 100))
             if self.active_weapon == "secondary":
                 self.recoil_controller.set_recoil_y(value)
-            self.save_settings() # Save settings after entry change
+            self.save_settings()
         except ValueError:
             CTkMessagebox(title="Error", message="Invalid value for Secondary Recoil Y. Please enter a number.", icon="cancel").get()
             self.secondary_recoil_y_entry.delete(0, tk.END)
@@ -629,10 +611,10 @@ class RecoilControllerApp(customtkinter.CTk):
         try:
             value = float(self.secondary_recoil_x_entry.get())
             self.recoil_controller.settings.secondary_recoil_x = value
-            self.secondary_recoil_x_slider.set(int(value * 1000)) # Update slider
+            self.secondary_recoil_x_slider.set(int(value * 1000))
             if self.active_weapon == "secondary":
                 self.recoil_controller.set_recoil_x(value)
-            self.save_settings() # Save settings after entry change
+            self.save_settings()
         except ValueError:
             CTkMessagebox(title="Error", message="Invalid value for Secondary Recoil X. Please enter a number.", icon="cancel").get()
             self.secondary_recoil_x_entry.delete(0, tk.END)
