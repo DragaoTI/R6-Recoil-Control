@@ -64,4 +64,4 @@ Clique no botão "Presets" para abrir a janela de gerenciamento de presets:
     *   **Delete Preset (Excluir Preset)**: Selecione um preset existente na caixa de seleção e clique em "Delete Preset" para removê-lo. Uma confirmação será solicitada.
 
 ---
-**Observação**: Este aplicativo foi projetado para auxiliar no controle de recuo em jogos. Use-o de forma responsável e de acordo com os termos de serviço dos jogos. 
+**Observação**: Este aplicativo foi projetado para ajudar no controle de recuo no R6 (Rainbow Six). Use-o de forma responsável e de acordo com os termos de serviço dos jogos. 
