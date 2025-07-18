@@ -66,9 +66,18 @@ Click the "Presets" button to open the preset management window:
     *   **Load Preset**: Select an existing preset from the "Load Existing Preset" dropdown and click "Load Preset" to apply these settings. A confirmation will be requested.
     *   **Delete Preset**: Select an existing preset from the dropdown and click "Delete Preset" to remove it. A confirmation will be requested.
 
-## Logging
+## 🔍 Executable (.exe) Safety Verification
 
-The application logs information, warnings, and errors to a log file named `recoil_controller.log` in the same directory as the main script. This can be useful for debugging and understanding application behavior.
+This project includes an executable (`.exe`) built using [PyInstaller](https://www.pyinstaller.org/), a widely-used packaging tool for Python projects. Although legitimate, executables created with PyInstaller may occasionally trigger **false positives** in less well-known antivirus software.
+
+To ensure transparency, we conducted a full scan using [VirusTotal](https://www.virustotal.com/gui/file/ed6607f7e8466e7b29ea0d045b5de29c337d18e17ab40d0f63f0245e383c88ad?nocache=1). Here are the results:
+
+### 🧪 Scan Summary:
+| Status                  | Details                                                                 |
+|------------------------|--------------------------------------------------------------------------|
+| ✅ Safe on 66/70        | Confirmed clean by Microsoft Defender, Kaspersky, BitDefender, Avast, AVG, McAfee, Malwarebytes, and other major vendors. |
+| ⚠️ False positives on 4 | Flagged by 4 lesser-known antivirus engines due to generic heuristics related to PyInstaller usage. |
+| 📜 Detection rule        | Based on a [public YARA rule](https://github.com/bartblaze/Yara-rules) identifying PyInstaller-packaged files — **not actual malware**. |
 
 ---
 **Note**: This application is designed to assist with recoil control in games. Use it responsibly and in accordance with game terms of service. 
