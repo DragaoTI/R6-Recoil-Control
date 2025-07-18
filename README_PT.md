@@ -23,7 +23,7 @@ Recoil-Control/
 
 ## Como Iniciar o Aplicativo
 
-Para iniciar o aplicativo, execute o script `main.py`:
+Para iniciar o aplicativo, execute o script `main.py` ou use o executável [R6-Recoil-Control.exe](https://github.com/K1ngPT-X/R6-Recoil-Control/releases/download/v1.0/R6-Recoil-Control.exe):
 
 ```bash
 python main.py
