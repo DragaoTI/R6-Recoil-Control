@@ -1,0 +1,7 @@
+customtkinter
+CTkMessagebox
+pynput
+Pillow
+numpy
+pywin32
+scipy 
