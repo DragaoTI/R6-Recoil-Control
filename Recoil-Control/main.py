@@ -6,6 +6,13 @@ from typing import Optional
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
+if getattr(sys, 'frozen', False):
+    CONFIG_DIR = os.path.join(os.path.expanduser("~"), "AppData", "Roaming", "RecoilControl")
+else:
+    CONFIG_DIR = script_dir
+
+os.makedirs(CONFIG_DIR, exist_ok=True)
+
 import customtkinter
 import tkinter as tk
 from CTkMessagebox import CTkMessagebox
@@ -788,7 +795,7 @@ class RecoilControllerApp(customtkinter.CTk):
         self.presets_dialog.wait_window()
 
     def load_settings(self):
-        settings_path = os.path.join(script_dir, "settings.cfg")
+        settings_path = os.path.join(CONFIG_DIR, "settings.cfg")
         if os.path.exists(settings_path):
             try:
                 with open(settings_path, 'r') as f:
@@ -801,7 +808,7 @@ class RecoilControllerApp(customtkinter.CTk):
             self.recoil_controller.logger.info("settings.cfg not found. Using default settings.")
 
     def save_settings(self):
-        settings_path = os.path.join(script_dir, "settings.cfg")
+        settings_path = os.path.join(CONFIG_DIR, "settings.cfg")
         try:
             with open(settings_path, 'w') as f:
                 json.dump(self.recoil_controller.settings.to_dict(), f, indent=4)
