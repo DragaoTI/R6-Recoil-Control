@@ -65,5 +65,18 @@ Clique no botão "Presets" para abrir a janela de gerenciamento de presets:
     *   **Load Preset (Carregar Preset)**: Selecione um preset existente na caixa de seleção "Load Existing Preset" e clique em "Load Preset" para aplicar essas configurações. Uma confirmação será solicitada.
     *   **Delete Preset (Excluir Preset)**: Selecione um preset existente na caixa de seleção e clique em "Delete Preset" para removê-lo. Uma confirmação será solicitada.
 
+## 🔍 Verificação de Segurança do Executável (.exe)
+
+Este projeto inclui um executável (`.exe`) gerado com [PyInstaller](https://www.pyinstaller.org/), ferramenta amplamente utilizada por desenvolvedores em projetos Python. Embora legítima, essa ferramenta pode gerar **falsos positivos** em alguns antivírus menos conhecidos.
+
+Para garantir transparência, realizamos uma verificação completa via [VirusTotal](https://www.virustotal.com/gui/file/ed6607f7e8466e7b29ea0d045b5de29c337d18e17ab40d0f63f0245e383c88ad?nocache=1). Aqui estão os resultados:
+
+### 🧪 Resultados da análise:
+| Situação                | Detalhes                                                                 |
+|------------------------|--------------------------------------------------------------------------|
+| ✅ Seguro em 66/70      | Reconhecido como seguro por Microsoft Defender, Kaspersky, BitDefender, Avast, AVG, McAfee, Malwarebytes e outros renomados. |
+| ⚠️ Falsos positivos em 4 | Detectado por 4 antivírus menos conhecidos, por heurísticas genéricas ligadas ao uso do PyInstaller. |
+| 📜 Regra usada           | [YARA Rule pública](https://github.com/bartblaze/Yara-rules) — identifica arquivos PyInstaller, **não vírus reais**. |
+
 ---
 **Observação**: Este aplicativo foi projetado para ajudar no controle de recuo no R6 (Rainbow Six). Use-o de forma responsável e de acordo com os termos de serviço dos jogos. 
