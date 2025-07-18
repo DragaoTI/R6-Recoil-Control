@@ -2,6 +2,8 @@
 
 Este guia explica como usar o aplicativo Recoil Control para gerenciar as configurações de recuo da arma e os presets de agentes.
 
+https://github.com/user-attachments/assets/459f8606-34a4-4efe-a69f-15d24bfd72f1
+
 ## Estrutura de Arquivos
 
 Certifique-se de que as pastas `Agents` e `presets` estejam no mesmo diretório do script principal `main.py`.
