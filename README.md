@@ -1,4 +1,4 @@
-# Recoil Control User Guide
+# Recoil Control User Guide | [PT VERSION HERE](https://github.com/DragaoTI/R6-Recoil-Control/blob/main/README.md)
 
 This guide explains how to use the Recoil Control application to manage weapon recoil settings and agent presets.
 
