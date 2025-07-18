@@ -27,7 +27,7 @@ class SettingsDialog(customtkinter.CTkToplevel):
         self.title("Settings")
         self.recoil_controller = recoil_controller
         self.main_app_instance = main_app_instance
-        self.geometry("400x450")
+        self.geometry("400x550")
         self.init_ui()
 
     def init_ui(self):
@@ -448,7 +448,7 @@ class RecoilControllerApp(customtkinter.CTk):
     def __init__(self):
         super().__init__()
         self.title("Recoil Control")
-        self.geometry("500x550")
+        self.geometry("500x660")
 
         self.overrideredirect(False)
 
@@ -468,38 +468,42 @@ class RecoilControllerApp(customtkinter.CTk):
         primary_weapon_group_box.grid_columnconfigure(0, weight=1)
         customtkinter.CTkLabel(primary_weapon_group_box, text="Primary Weapon Recoil", font=customtkinter.CTkFont(weight="bold")).grid(row=0, column=0, pady=(5,0))
 
+        customtkinter.CTkLabel(primary_weapon_group_box, text="Vertical Recoil (Y):").grid(row=1, column=0, sticky="w", padx=(10,5), pady=(10,2))
         self.primary_recoil_y_entry = customtkinter.CTkEntry(primary_weapon_group_box, width=50)
-        self.primary_recoil_y_entry.grid(row=1, column=0, sticky="w", padx=10, pady=(10,5))
+        self.primary_recoil_y_entry.grid(row=2, column=0, sticky="w", padx=10, pady=(0,5))
         self.primary_recoil_y_entry.bind("<Return>", self._update_primary_recoil_y_from_entry)
         self.primary_recoil_y_slider = customtkinter.CTkSlider(primary_weapon_group_box, from_=0, to=2000, number_of_steps=2000, command=self._update_primary_recoil_y_from_slider_scaled)
         self.primary_recoil_y_slider.set(0)
-        self.primary_recoil_y_slider.grid(row=2, column=0, sticky="ew", padx=10, pady=(2,10))
+        self.primary_recoil_y_slider.grid(row=3, column=0, sticky="ew", padx=10, pady=(2,10))
 
+        customtkinter.CTkLabel(primary_weapon_group_box, text="Horizontal Recoil (X):").grid(row=4, column=0, sticky="w", padx=(10,5), pady=(10,2))
         self.primary_recoil_x_entry = customtkinter.CTkEntry(primary_weapon_group_box, width=50)
-        self.primary_recoil_x_entry.grid(row=3, column=0, sticky="w", padx=10, pady=(10,2))
+        self.primary_recoil_x_entry.grid(row=5, column=0, sticky="w", padx=10, pady=(0,2))
         self.primary_recoil_x_entry.bind("<Return>", self._update_primary_recoil_x_from_entry)
         self.primary_recoil_x_slider = customtkinter.CTkSlider(primary_weapon_group_box, from_=-5000, to=5000, number_of_steps=10000, command=self._update_primary_recoil_x_from_slider_scaled)
         self.primary_recoil_x_slider.set(0)
-        self.primary_recoil_x_slider.grid(row=4, column=0, sticky="ew", padx=10, pady=(2,10))
+        self.primary_recoil_x_slider.grid(row=6, column=0, sticky="ew", padx=10, pady=(2,10))
 
         secondary_weapon_group_box = customtkinter.CTkFrame(content_frame, border_width=2, corner_radius=10)
         secondary_weapon_group_box.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
         secondary_weapon_group_box.grid_columnconfigure(0, weight=1)
         customtkinter.CTkLabel(secondary_weapon_group_box, text="Secondary Weapon Recoil", font=customtkinter.CTkFont(weight="bold")).grid(row=0, column=0, pady=(5,0))
 
+        customtkinter.CTkLabel(secondary_weapon_group_box, text="Vertical Recoil (Y):").grid(row=1, column=0, sticky="w", padx=(10,5), pady=(10,2))
         self.secondary_recoil_y_entry = customtkinter.CTkEntry(secondary_weapon_group_box, width=50)
-        self.secondary_recoil_y_entry.grid(row=1, column=0, sticky="w", padx=10, pady=(10,5))
+        self.secondary_recoil_y_entry.grid(row=2, column=0, sticky="w", padx=10, pady=(0,5))
         self.secondary_recoil_y_entry.bind("<Return>", self._update_secondary_recoil_y_from_entry)
         self.secondary_recoil_y_slider = customtkinter.CTkSlider(secondary_weapon_group_box, from_=0, to=2000, number_of_steps=2000, command=self._update_secondary_recoil_y_from_slider_scaled)
         self.secondary_recoil_y_slider.set(0)
-        self.secondary_recoil_y_slider.grid(row=2, column=0, sticky="ew", padx=10, pady=(2,10))
+        self.secondary_recoil_y_slider.grid(row=3, column=0, sticky="ew", padx=10, pady=(2,10))
 
+        customtkinter.CTkLabel(secondary_weapon_group_box, text="Horizontal Recoil (X):").grid(row=4, column=0, sticky="w", padx=(10,5), pady=(10,2))
         self.secondary_recoil_x_entry = customtkinter.CTkEntry(secondary_weapon_group_box, width=50)
-        self.secondary_recoil_x_entry.grid(row=3, column=0, sticky="w", padx=10, pady=(10,2))
+        self.secondary_recoil_x_entry.grid(row=5, column=0, sticky="w", padx=10, pady=(0,2))
         self.secondary_recoil_x_entry.bind("<Return>", self._update_secondary_recoil_x_from_entry)
         self.secondary_recoil_x_slider = customtkinter.CTkSlider(secondary_weapon_group_box, from_=-5000, to=5000, number_of_steps=10000, command=self._update_secondary_recoil_x_from_slider_scaled)
         self.secondary_recoil_x_slider.set(0)
-        self.secondary_recoil_x_slider.grid(row=4, column=0, sticky="ew", padx=10, pady=(2,10))
+        self.secondary_recoil_x_slider.grid(row=6, column=0, sticky="ew", padx=10, pady=(2,10))
 
         self.secondary_weapon_enabled_checkbox = customtkinter.CTkCheckBox(content_frame, text="Enable Secondary Weapon", command=self.toggle_secondary_weapon_enabled)
         self.secondary_weapon_enabled_checkbox.select() if self.recoil_controller.settings.secondary_weapon_enabled else self.secondary_weapon_enabled_checkbox.deselect()
