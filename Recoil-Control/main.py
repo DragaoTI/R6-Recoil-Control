@@ -17,7 +17,7 @@ from PIL import Image
 try:
     from recoil_controller import RecoilController
 except ImportError:
-    logging.error("O módulo 'recoil_controller' não foi encontrado.")
+    logging.error("Module 'recoil_controller' not found.")
     sys.exit(1)
 
 
@@ -444,11 +444,47 @@ class AgentPresetDialog(customtkinter.CTkToplevel):
             msg.get()
 
 
+class AboutDialog(customtkinter.CTkToplevel):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.title("About")
+        self.geometry("380x150")
+        self.update_idletasks()
+
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        
+        window_width = 380
+        window_height = 150
+
+        x = int((screen_width / 2) - (window_width / 2))
+        y = int((screen_height / 2) - (window_height / 2))
+
+        self.geometry(f"{window_width}x{window_height}+{x}+{y}")
+
+        self.grab_set()
+        self.focus_set()
+        self.transient(parent)
+
+        main_frame = customtkinter.CTkFrame(self)
+        main_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        customtkinter.CTkLabel(main_frame, text="Created by K1ngPT-X").pack(pady=10)
+        customtkinter.CTkLabel(main_frame, text="GitHub: https://github.com/K1ngPT-X/R6-Recoil-Control").pack(pady=5)
+
+        close_button = customtkinter.CTkButton(main_frame, text="Close", command=self.destroy)
+        close_button.pack(pady=10)
+
+
 class RecoilControllerApp(customtkinter.CTk):
     def __init__(self):
         super().__init__()
+        self.about_dialog = AboutDialog(self)
+        self.about_dialog.wait_window()
+
         self.title("Recoil Control")
         self.geometry("500x660")
+        self.iconbitmap(os.path.join(script_dir, "icon.ico"))
 
         self.overrideredirect(False)
 
