@@ -1,9 +1,3 @@
-"""
-Módulo RecoilController
-Este módulo contém as classes para controle do mouse, escuta de eventos do mouse,
-configurações de recoil e o controlador principal do sistema de recoil.
-"""
-
 import logging
 import threading
 import time
@@ -26,16 +20,13 @@ from pynput.mouse import Button, Listener
 from scipy import signal
 from scipy.stats import pearsonr
 
-# Disable specific pylint warnings for win32 modules that may not be fully analyzable
-# pylint: disable=E1101, C0103
-
 class MouseController:
     """Controlador do mouse usando win32api"""
     
     def __init__(self):
         self.position = (0, 0)
-        self._remainder_x = 0.0 # Inicializa acumulador para movimentos fracionários em X
-        self._remainder_y = 0.0 # Inicializa acumulador para movimentos fracionários em Y
+        self._remainder_x = 0.0
+        self._remainder_y = 0.0
         self.update_position()
     
     def update_position(self):
@@ -54,7 +45,6 @@ class MouseController:
             win32api.mouse_event(win32con.MOUSEEVENTF_MOVE, int_dx, int_dy)
             self._remainder_x -= int_dx
             self._remainder_y -= int_dy
-            # self.logger.debug(f"[MouseController] Movimento efetivo: dx={int_dx}, dy={int_dy}")
         self.update_position()
     
     def move_to(self, x, y):
@@ -101,27 +91,24 @@ class RecoilSettings:
     """Configurações do sistema de recoil"""
     
     def __init__(self):
-        self.shoot_delay = 0.01  # Delay between corrections
-        self.max_shots = 1000    # Maximum shots per burst
+        self.shoot_delay = 0.01
+        self.max_shots = 1000
         self.smoothing_factor: float = 0.5
         self.sensitivity: float = 1.0
 
         self.max_movement: int = 500
-        self.timeout = 30        # Timeout for operations
+        self.timeout = 30
 
-        # Hotkey settings (new)
-        self.primary_weapon_hotkey: List[str] = ['F9'] # Example: F9 for primary weapon
-        self.primary_weapon_hotkey_2: List[str] = [] # Second hotkey for primary weapon
-        self.secondary_weapon_hotkey: List[str] = ['F10'] # Example: F10 for secondary weapon
-        self.secondary_weapon_hotkey_2: List[str] = [] # Second hotkey for secondary weapon
+        self.primary_weapon_hotkey: List[str] = ['F9']
+        self.primary_weapon_hotkey_2: List[str] = []
+        self.secondary_weapon_hotkey: List[str] = ['F10']
+        self.secondary_weapon_hotkey_2: List[str] = []
 
-        # Persistent recoil values for primary and secondary weapons
         self.primary_recoil_y = 0.0
         self.primary_recoil_x = 0.0
         self.secondary_recoil_y = 0.0
         self.secondary_recoil_x = 0.0
 
-        # Option to enable/disable secondary weapon
         self.secondary_weapon_enabled = False
 
 
@@ -161,7 +148,6 @@ class RecoilController:
             callback_on_move=self._on_mouse_move
         )
         
-        # Estado do sistema
         self.script_running = False
         self.lbutton_held = False
         self.rbutton_held = False
@@ -169,24 +155,20 @@ class RecoilController:
         self.current_scope = "default"
         self.current_factor = 1.0
 
-        # Valores base para recoil horizontal e vertical (os valores ATIVOS atualmente)
         self.base_recoil_x = 0.0
         self.base_recoil_y = 0.0 
-        self._recoil_lock = threading.Lock() # Adicionar lock para acesso thread-safe
+        self._recoil_lock = threading.Lock()
         
-        # Inicializar a thread de correção de recoil
         self._recoil_correction_thread = None 
         
-        # Analytics
         self.shot_count = 0
         self.session_stats = {
             'total_shots': 0,
             'total_corrections': 0,
             'session_start': time.time()
         }
-        self._last_correction = (0.0, 0.0) # Inicializa _last_correction
+        self._last_correction = (0.0, 0.0)
         
-        # Logger
         self.logger = logging.getLogger(__name__)
 
     def set_recoil_x(self, value: float):
@@ -225,20 +207,17 @@ class RecoilController:
             self.lbutton_held = pressed
             self.logger.debug(f"[RecoilController] Botão esquerdo: {self.lbutton_held}");
             
-        # Lógica de controle de recoil baseada nos estados dos botões
-        if self.rbutton_held and self.lbutton_held: # Ambos os botões estão pressionados
-            if not (self._recoil_correction_thread and self._recoil_correction_thread.is_alive()): # Apenas inicia a correção se não estiver já a correr
+        if self.rbutton_held and self.lbutton_held:
+            if not (self._recoil_correction_thread and self._recoil_correction_thread.is_alive()):
                 self.logger.info("[RecoilController] Ambos os botões (direito e esquerdo) pressionados. Iniciando correção de recoil...")
                 self._start_recoil_correction()
-        elif not (self.rbutton_held and self.lbutton_held): # Se um ou ambos os botões foram soltos, e não ambos estão pressionados
-            if self._recoil_correction_thread and self._recoil_correction_thread.is_alive(): # Só para se a thread estiver ativa
+        elif not (self.rbutton_held and self.lbutton_held):
+            if self._recoil_correction_thread and self._recoil_correction_thread.is_alive():
                 self.logger.info("[RecoilController] Um dos botões (direito ou esquerdo) foi solto. Parando correção de recoil...")
                 self._stop_recoil_correction()
     
     def _on_mouse_move(self, x, y):
         """Callback para movimento do mouse"""
-        # O pynput.mouse.Listener passa x, y mas não precisamos deles aqui.
-        # Usamos *args para aceitar quaisquer argumentos e ignorá-los.
         self.mouse_controller.update_position()
 
     
@@ -246,7 +225,7 @@ class RecoilController:
         """Inicia correção de recoil"""
         if not self._recoil_correction_thread or not self._recoil_correction_thread.is_alive():
             self.logger.info("[RecoilController] Iniciando thread de correção de recoil.")
-            self.script_running = True # Garante que o script esteja marcado como rodando
+            self.script_running = True
             self._recoil_correction_thread = threading.Thread(target=self._recoil_correction_loop, daemon=True)
             self._recoil_correction_thread.start()
         else:
@@ -255,34 +234,29 @@ class RecoilController:
     def _stop_recoil_correction(self):
         """Para correção de recoil"""
         self.logger.info("[RecoilController] Parando thread de correção de recoil.")
-        # self.script_running = False # Removido: esta linha causava o encerramento completo do script
+        self.script_running = False
 
     def _recoil_correction_loop(self):
         """Loop de correção de recoil"""
         self.logger.info("[RecoilController] Loop de correção de recoil iniciado.")
         try:
             while self.script_running and self.rbutton_held and self.lbutton_held:
-                # Implementação da correção de recoil...
                 with self._recoil_lock:
                     recoil_y = self.base_recoil_y
                     recoil_x = self.base_recoil_x
 
-                if recoil_y > 0 or recoil_x != 0: # Apenas move se houver recoil para aplicar
+                if recoil_y > 0 or recoil_x != 0:
                     dx, dy = self.get_adjusted_recoil(self.settings.sensitivity)
-                    # Aplicar suavização se dx ou dy forem muito grandes (opcional)
-                    # dx = dx * self.settings.smoothing_factor
-                    # dy = dy * self.settings.smoothing_factor
 
-                    # Limitar o movimento para evitar pulos grandes (segurança)
                     dx = max(-self.settings.max_movement, min(self.settings.max_movement, dx))
                     dy = max(-self.settings.max_movement, min(self.settings.max_movement, dy))
                     
-                    if abs(dx) > 0.01 or abs(dy) > 0.01: # Adicionado threshold para evitar movimentos minúsculos
+                    if abs(dx) > 0.01 or abs(dy) > 0.01:
                         self.mouse_controller.move(dx, dy)
-                        self._last_correction = (dx, dy) # Atualiza a última correção
+                        self._last_correction = (dx, dy)
                         self.logger.debug(f"[RecoilController] Aplicando correção: dx={dx:.2f}, dy={dy:.2f}")
 
-                time.sleep(self.settings.shoot_delay) # Pequeno atraso para simular cadência de tiro
+                time.sleep(self.settings.shoot_delay)
         except Exception as e:
             self.logger.error(f"[RecoilController] Erro inesperado no loop de correção de recoil: {e}")
         finally:
@@ -291,48 +265,22 @@ class RecoilController:
     def get_adjusted_recoil(self, factor: float) -> Tuple[float, float]:
         """Calcula correção de recoil ajustada usando base_recoil_x e base_recoil_y"""
         
-        with self._recoil_lock: # Adquirir lock para ler
-            # Usa os valores base de recoil
+        with self._recoil_lock:
             base_horizontal = self.base_recoil_x
             base_vertical = self.base_recoil_y
             self.logger.info(f"Calculando recoil - Base H: {base_horizontal:.2f}, Base V: {base_vertical:.2f}, Fator: {factor:.2f}")
         
-        # Aplica fator de correção
         adjusted_horizontal = base_horizontal * factor * self.settings.sensitivity
         adjusted_vertical = base_vertical * factor * self.settings.sensitivity
         
-        # Neste ponto, sem suavização, adjusted_horizontal/vertical já são os valores finais
-        self._last_correction = (adjusted_horizontal, adjusted_vertical) # Ainda mantém o último valor para debug futuro
+        self._last_correction = (adjusted_horizontal, adjusted_vertical)
         
-        # Limitadores de segurança (mantidos)
         adjusted_horizontal = max(-self.settings.max_movement, 
                                 min(self.settings.max_movement, adjusted_horizontal))
         adjusted_vertical = max(-self.settings.max_movement, 
                               min(self.settings.max_movement, adjusted_vertical))
         
         return (adjusted_horizontal, adjusted_vertical)
-
-    def _test_recoil(self, factor: float):
-        """Testa fator de recoil"""
-        self.logger.info("Testando fator de recoil: %.3f", factor)
-        self.logger.info("Mantenha ambos os botões pressionados para testar")
-        
-        old_factor = self.current_factor
-        self.current_factor = factor
-        
-        try:
-            # Aguarda teste do usuário
-            input("Pressione Enter após testar...")
-            
-            # Pergunta se deseja manter
-            response = input("Deseja manter este fator? (s/n): ")
-            if response.lower() not in ['s', 'sim', 'y', 'yes']:
-                self.current_factor = old_factor
-                self.logger.info("Fator anterior restaurado")
-                
-        except KeyboardInterrupt:
-            self.current_factor = old_factor
-            self.logger.info("Teste de fator de recoil cancelado.")
 
     def set_agent_scope(self, agent: str, scope: str):
         """Define o agente e o escopo atuais."""
@@ -354,7 +302,6 @@ def run_recoil_controller_standalone():
     controller = RecoilController()
     controller.start()
     controller.logger.info(f"RecoilController iniciado. PID: {os.getpid()}")
-    # Mantenha a thread principal viva para permitir que as threads em segundo plano sejam executadas
     try:
         while True:
             time.sleep(1)
@@ -362,18 +309,15 @@ def run_recoil_controller_standalone():
         controller.stop()
         logging.info("RecoilController parado via KeyboardInterrupt.")
 
-# Mover a execução principal para uma função, para que o módulo possa ser importado
 if __name__ == "__main__":
-    # Configurar o logger para salvar em arquivo
     logging.basicConfig(
-        level=logging.DEBUG, # Nível DEBUG para logs mais detalhados
+        level=logging.DEBUG,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         filename='recoil_controller.log',
-        filemode='w' # 'w' para sobrescrever a cada execução, 'a' para append
+        filemode='w'
     )
-    # Adicionar um handler para também imprimir no console, se desejar
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO) # Nível INFO para o console
+    console_handler.setLevel(logging.INFO)
     console_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
     logging.getLogger().addHandler(console_handler)
 
