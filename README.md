@@ -2,7 +2,6 @@
 
 This guide explains how to use the Recoil Control application to manage weapon recoil settings and agent presets.
 
-
 https://github.com/user-attachments/assets/459f8606-34a4-4efe-a69f-15d24bfd72f1
 
 ## File Structure
