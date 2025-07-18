@@ -27,7 +27,7 @@ class SettingsDialog(customtkinter.CTkToplevel):
         self.title("Settings")
         self.recoil_controller = recoil_controller
         self.main_app_instance = main_app_instance
-        self.geometry("400x550")
+        self.geometry("400x510")
         self.init_ui()
 
     def init_ui(self):
@@ -122,6 +122,9 @@ class SettingsDialog(customtkinter.CTkToplevel):
         row_offset += 1
 
         main_frame.grid_columnconfigure(1, weight=1)
+
+        customtkinter.CTkLabel(main_frame, text="Created by K1ngPT-X").grid(row=row_offset + 1, column=0, columnspan=3, pady=(20, 2), sticky="ew")
+        customtkinter.CTkLabel(main_frame, text="App Version: 1.0.0").grid(row=row_offset + 2, column=0, columnspan=3, pady=(2, 10), sticky="ew")
 
     def start_hotkey_capture(self, input_field, setting_key):
         self.current_hotkey_field = input_field
@@ -445,17 +448,18 @@ class AgentPresetDialog(customtkinter.CTkToplevel):
 
 
 class AboutDialog(customtkinter.CTkToplevel):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, recoil_controller=None):
         super().__init__(parent)
+        self.parent = parent
+        self.recoil_controller = recoil_controller
         self.title("About")
         self.geometry("380x150")
         self.update_idletasks()
 
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
-        
         window_width = 380
-        window_height = 150
+        window_height = 200
 
         x = int((screen_width / 2) - (window_width / 2))
         y = int((screen_height / 2) - (window_height / 2))
@@ -469,27 +473,47 @@ class AboutDialog(customtkinter.CTkToplevel):
         main_frame = customtkinter.CTkFrame(self)
         main_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-        customtkinter.CTkLabel(main_frame, text="Created by K1ngPT-X").pack(pady=10)
+        customtkinter.CTkLabel(main_frame, text="Created by K1ngPT-X").pack(pady=5)
         customtkinter.CTkLabel(main_frame, text="GitHub: https://github.com/K1ngPT-X/R6-Recoil-Control").pack(pady=5)
+        customtkinter.CTkLabel(main_frame, text="App Version: 1.0.0").pack(pady=5)
 
-        close_button = customtkinter.CTkButton(main_frame, text="Close", command=self.destroy)
-        close_button.pack(pady=10)
+        button_checkbox_frame = customtkinter.CTkFrame(main_frame, fg_color="transparent")
+        button_checkbox_frame.pack(pady=10)
+        button_checkbox_frame.grid_columnconfigure(0, weight=2)
+        button_checkbox_frame.grid_columnconfigure(1, weight=1)
+
+        continue_button = customtkinter.CTkButton(button_checkbox_frame, text="Continue", command=self.destroy)
+        continue_button.grid(row=0, column=0, padx=(0, 5), sticky="e")
+
+        self.do_not_show_again_checkbox = customtkinter.CTkCheckBox(button_checkbox_frame, text="Do not show again", command=self.toggle_show_on_startup)
+        if self.recoil_controller and not self.recoil_controller.settings.show_about_on_startup:
+            self.do_not_show_again_checkbox.select()
+        else:
+            self.do_not_show_again_checkbox.deselect()
+        self.do_not_show_again_checkbox.grid(row=0, column=1, padx=(5,0), sticky="w")
+
+    def toggle_show_on_startup(self):
+        if self.recoil_controller:
+            self.recoil_controller.settings.show_about_on_startup = not self.do_not_show_again_checkbox.get()
+            if self.parent:
+                self.parent.save_settings()
 
 
 class RecoilControllerApp(customtkinter.CTk):
     def __init__(self):
         super().__init__()
-        self.about_dialog = AboutDialog(self)
-        self.about_dialog.wait_window()
+        self.recoil_controller = RecoilController()
+        self.load_settings()
+
+        if self.recoil_controller.settings.show_about_on_startup:
+            self.about_dialog = AboutDialog(self, recoil_controller=self.recoil_controller)
+            self.about_dialog.wait_window()
 
         self.title("Recoil Control")
         self.geometry("500x660")
         self.iconbitmap(os.path.join(script_dir, "icon.ico"))
 
         self.overrideredirect(False)
-
-        self.recoil_controller = RecoilController()
-        self.load_settings()
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -853,4 +877,4 @@ if __name__ == '__main__':
 
     app = RecoilControllerApp()
     app.protocol("WM_DELETE_WINDOW", app.on_closing)
-    app.mainloop() 
+    app.mainloop()
