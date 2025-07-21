@@ -74,8 +74,8 @@ Para garantir transparência, realizamos uma verificação completa via [VirusTo
 ### 🧪 Resultados da análise:
 | Situação                | Detalhes                                                                 |
 |------------------------|--------------------------------------------------------------------------|
-| ✅ Seguro em 66/70      | Reconhecido como seguro por Microsoft Defender, Kaspersky, BitDefender, Avast, AVG, McAfee, Malwarebytes e outros renomados. |
-| ⚠️ Falsos positivos em 4 | Detectado por 4 antivírus menos conhecidos, por heurísticas genéricas ligadas ao uso do PyInstaller. |
+| ✅ Seguro em 69/71      | Reconhecido como seguro por Microsoft Defender, Kaspersky, BitDefender, Avast, AVG, McAfee, Malwarebytes e outros renomados. |
+| ⚠️ Falsos positivos em 2 | Detectado por 2 antivírus menos conhecidos, por heurísticas genéricas ligadas ao uso do PyInstaller. |
 | 📜 Regra usada           | [YARA Rule pública](https://github.com/bartblaze/Yara-rules) — identifica arquivos PyInstaller, **não vírus reais**. |
 
 ---
