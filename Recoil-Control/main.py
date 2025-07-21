@@ -2,9 +2,65 @@ import sys
 import os
 import json
 import logging
+import requests
+import shutil
 from typing import Optional
+import subprocess
+
+__version__ = "1.0.2"
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Nova função para a verificação de atualização
+def run_update_check_and_exit_if_needed():
+    update_url = "https://raw.githubusercontent.com/K1ngPT-X/R6-Recoil-Control/refs/heads/main/Version.txt"
+    try:
+        response = requests.get(update_url)
+        response.raise_for_status()  # Levanta um HTTPError para respostas ruins (4xx ou 5xx)
+        latest_version = response.text.strip()
+        
+        if latest_version > __version__:
+            from CTkMessagebox import CTkMessagebox
+            msg = CTkMessagebox(title="New Version Available",
+                                message=f"A new version ({latest_version}) is available! Your current version is ({__version__}).\nDo you want to download now?",
+                                option_1="No", option_2="Yes", icon="question")
+            response = msg.get()
+            if response == "Yes":
+                download_link = f"https://github.com/K1ngPT-X/R6-Recoil-Control/releases/download/v{latest_version}/R6-Recoil-Control.exe"
+                
+                # Define o caminho de download para a pasta de Downloads do usuário
+                downloads_folder = os.path.join(os.path.expanduser("~"), "Downloads")
+                os.makedirs(downloads_folder, exist_ok=True)
+                output_path = os.path.join(downloads_folder, f"R6-Recoil-Control_v{latest_version}.exe")
+                
+                try:
+                    with requests.get(download_link, stream=True) as r:
+                        r.raise_for_status()
+                        with open(output_path, 'wb') as f:
+                            shutil.copyfileobj(r.raw, f)
+                    CTkMessagebox(title="Download Complete", message=f"The new version has been downloaded to:\n{output_path}\nThe application will be updated and restarted automatically.", icon="info").get()
+
+                    # Iniciar o script de atualização e fechar o aplicativo principal
+                    current_app_path = os.path.join(CONFIG_DIR, "output", "R6-Recoil-Control.exe") # Changed script_dir to CONFIG_DIR
+                    updater_script_path = os.path.join(script_dir, "update.exe")
+                    
+                    # Executa o update.exe com os caminhos do app antigo e novo
+                    subprocess.Popen([updater_script_path, current_app_path, output_path])
+                    
+                    sys.exit() # Sai do aplicativo principal imediatamente
+
+                except requests.exceptions.RequestException as req_e:
+                    logging.error(f"Could not download the update: {req_e}\nPlease check the link or your connection.")
+                    CTkMessagebox(title="Download Error", message=f"Could not download the update: {req_e}\nPlease check the link or your connection.", icon="cancel").get()
+                except Exception as e:
+                    logging.error(f"An error occurred while saving the file: {e}")
+                    CTkMessagebox(title="Error", message=f"An error occurred while saving the file: {e}", icon="cancel").get()
+        else:
+            logging.info("You already have the latest version.")
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error checking for updates: {e}")
+    except Exception as e:
+        logging.error(f"An unexpected error occurred while checking for updates: {e}")
 
 if getattr(sys, 'frozen', False):
     CONFIG_DIR = os.path.join(os.path.expanduser("~"), "AppData", "Roaming", "RecoilControl")
@@ -131,7 +187,7 @@ class SettingsDialog(customtkinter.CTkToplevel):
         main_frame.grid_columnconfigure(1, weight=1)
 
         customtkinter.CTkLabel(main_frame, text="Created by K1ngPT-X").grid(row=row_offset + 1, column=0, columnspan=3, pady=(20, 2), sticky="ew")
-        customtkinter.CTkLabel(main_frame, text="App Version: 1.0.0").grid(row=row_offset + 2, column=0, columnspan=3, pady=(2, 10), sticky="ew")
+        customtkinter.CTkLabel(main_frame, text="App Version: 1.0.2").grid(row=row_offset + 2, column=0, columnspan=3, pady=(2, 10), sticky="ew")
 
     def start_hotkey_capture(self, input_field, setting_key):
         self.current_hotkey_field = input_field
@@ -332,7 +388,7 @@ class AgentPresetDialog(customtkinter.CTkToplevel):
 
 
     def populate_presets_combobox(self):
-        agent_presets_dir = os.path.join(script_dir, "presets", self.agent_name.lower().replace(" ", "_"))
+        agent_presets_dir = os.path.join(CONFIG_DIR, "presets", self.agent_name.lower().replace(" ", "_"))
         presets = []
         if os.path.exists(agent_presets_dir):
             for filename in os.listdir(agent_presets_dir):
@@ -365,7 +421,7 @@ class AgentPresetDialog(customtkinter.CTkToplevel):
         if response != "Yes":
             return
 
-        agent_presets_dir = os.path.join(script_dir, "presets", self.agent_name.lower().replace(" ", "_"))
+        agent_presets_dir = os.path.join(CONFIG_DIR, "presets", self.agent_name.lower().replace(" ", "_"))
         preset_file_path = os.path.join(agent_presets_dir, f"{selected_preset}.json")
 
         if not os.path.exists(preset_file_path):
@@ -398,7 +454,7 @@ class AgentPresetDialog(customtkinter.CTkToplevel):
             msg.get()
             return
 
-        agent_presets_dir = os.path.join(script_dir, "presets", self.agent_name.lower().replace(" ", "_"))
+        agent_presets_dir = os.path.join(CONFIG_DIR, "presets", self.agent_name.lower().replace(" ", "_"))
         os.makedirs(agent_presets_dir, exist_ok=True)
 
         preset_file_path = os.path.join(agent_presets_dir, f"{preset_name}.json")
@@ -437,7 +493,7 @@ class AgentPresetDialog(customtkinter.CTkToplevel):
         if response != "Yes":
             return
 
-        agent_presets_dir = os.path.join(script_dir, "presets", self.agent_name.lower().replace(" ", "_"))
+        agent_presets_dir = os.path.join(CONFIG_DIR, "presets", self.agent_name.lower().replace(" ", "_"))
         preset_file_path = os.path.join(agent_presets_dir, f"{selected_preset}.json")
 
         try:
@@ -482,7 +538,7 @@ class AboutDialog(customtkinter.CTkToplevel):
 
         customtkinter.CTkLabel(main_frame, text="Created by K1ngPT-X").pack(pady=5)
         customtkinter.CTkLabel(main_frame, text="GitHub: https://github.com/K1ngPT-X/R6-Recoil-Control").pack(pady=5)
-        customtkinter.CTkLabel(main_frame, text="App Version: 1.0.0").pack(pady=5)
+        customtkinter.CTkLabel(main_frame, text=f"App Version: {__version__}").pack(pady=5)
 
         button_checkbox_frame = customtkinter.CTkFrame(main_frame, fg_color="transparent")
         button_checkbox_frame.pack(pady=10)
@@ -882,6 +938,9 @@ if __name__ == '__main__':
     customtkinter.set_appearance_mode("Dark")
     customtkinter.set_default_color_theme("blue")
 
+    run_update_check_and_exit_if_needed()
+    
     app = RecoilControllerApp()
+    
     app.protocol("WM_DELETE_WINDOW", app.on_closing)
     app.mainloop()
