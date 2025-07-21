@@ -23,7 +23,7 @@ Recoil-Control/
 
 ## How to Start the Application
 
-To launch the application, run `main.py` or use the compiled executable [R6-Recoil-Control.exe](https://github.com/K1ngPT-X/R6-Recoil-Control/releases/download/v1.0/R6-Recoil-Control.exe):
+To launch the application, run `main.py` or use the compiled executable [R6-Recoil-Control.exe](https://github.com/K1ngPT-X/R6-Recoil-Control/releases/download/v1.0.2/R6-Recoil-Control.exe):
 
 ```bash
 python main.py
