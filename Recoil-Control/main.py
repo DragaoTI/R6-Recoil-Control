@@ -11,12 +11,11 @@ __version__ = "1.0.2"
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
-# Nova função para a verificação de atualização
 def run_update_check_and_exit_if_needed():
     update_url = "https://raw.githubusercontent.com/K1ngPT-X/R6-Recoil-Control/refs/heads/main/Version.txt"
     try:
         response = requests.get(update_url)
-        response.raise_for_status()  # Levanta um HTTPError para respostas ruins (4xx ou 5xx)
+        response.raise_for_status()
         latest_version = response.text.strip()
         
         if latest_version > __version__:
@@ -28,7 +27,6 @@ def run_update_check_and_exit_if_needed():
             if response == "Yes":
                 download_link = f"https://github.com/K1ngPT-X/R6-Recoil-Control/releases/download/v{latest_version}/R6-Recoil-Control.exe"
                 
-                # Define o caminho de download para a pasta de Downloads do usuário
                 downloads_folder = os.path.join(os.path.expanduser("~"), "Downloads")
                 os.makedirs(downloads_folder, exist_ok=True)
                 output_path = os.path.join(downloads_folder, f"R6-Recoil-Control_v{latest_version}.exe")
@@ -40,14 +38,12 @@ def run_update_check_and_exit_if_needed():
                             shutil.copyfileobj(r.raw, f)
                     CTkMessagebox(title="Download Complete", message=f"The new version has been downloaded to:\n{output_path}\nThe application will be updated and restarted automatically.", icon="info").get()
 
-                    # Iniciar o script de atualização e fechar o aplicativo principal
-                    current_app_path = os.path.join(CONFIG_DIR, "output", "R6-Recoil-Control.exe") # Changed script_dir to CONFIG_DIR
+                    current_app_path = os.path.join(CONFIG_DIR, "output", "R6-Recoil-Control.exe")
                     updater_script_path = os.path.join(script_dir, "update.exe")
                     
-                    # Executa o update.exe com os caminhos do app antigo e novo
                     subprocess.Popen([updater_script_path, current_app_path, output_path])
                     
-                    sys.exit() # Sai do aplicativo principal imediatamente
+                    sys.exit()
 
                 except requests.exceptions.RequestException as req_e:
                     logging.error(f"Could not download the update: {req_e}\nPlease check the link or your connection.")
