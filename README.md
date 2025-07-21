@@ -75,8 +75,8 @@ To ensure transparency, we conducted a full scan using [VirusTotal]((https://www
 ### 🧪 Scan Summary:
 | Status                  | Details                                                                 |
 |------------------------|--------------------------------------------------------------------------|
-| ✅ Safe on 66/70        | Confirmed clean by Microsoft Defender, Kaspersky, BitDefender, Avast, AVG, McAfee, Malwarebytes, and other major vendors. |
-| ⚠️ False positives on 4 | Flagged by 4 lesser-known antivirus engines due to generic heuristics related to PyInstaller usage. |
+| ✅ Safe on 69/71       | Confirmed clean by Microsoft Defender, Kaspersky, BitDefender, Avast, AVG, McAfee, Malwarebytes, and other major vendors. |
+| ⚠️ False positives on 2  | Flagged by 2 lesser-known antivirus engines due to generic heuristics related to PyInstaller usage. |
 | 📜 Detection rule        | Based on a [public YARA rule](https://github.com/bartblaze/Yara-rules) identifying PyInstaller-packaged files — **not actual malware**. |
 
 ---
