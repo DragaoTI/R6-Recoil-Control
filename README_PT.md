@@ -69,7 +69,7 @@ Clique no botão "Presets" para abrir a janela de gerenciamento de presets:
 
 Este projeto inclui um executável (`.exe`) gerado com [PyInstaller](https://www.pyinstaller.org/), ferramenta amplamente utilizada por desenvolvedores em projetos Python. Embora legítima, essa ferramenta pode gerar **falsos positivos** em alguns antivírus menos conhecidos.
 
-Para garantir transparência, realizamos uma verificação completa via [VirusTotal](https://www.virustotal.com/gui/file/ed6607f7e8466e7b29ea0d045b5de29c337d18e17ab40d0f63f0245e383c88ad?nocache=1). Aqui estão os resultados:
+Para garantir transparência, realizamos uma verificação completa via [VirusTotal](https://www.virustotal.com/gui/file/16fbbdf06d640cf6bf08d2d46fa075b433b43643c209b9d7835506c15ae82893/detection). Aqui estão os resultados:
 
 ### 🧪 Resultados da análise:
 | Situação                | Detalhes                                                                 |
