@@ -1,6 +1,13 @@
+"""
+Módulo RecoilController
+Este módulo contém as classes para controle do mouse, escuta de eventos do mouse,
+configurações de recoil e o controlador principal do sistema de recoil.
+"""
+
 import logging
 import threading
 import time
+import ctypes
 from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Optional, Tuple, Literal
@@ -14,11 +21,41 @@ import numpy as np
 import win32api
 import win32con
 import win32gui
-
-from pynput import mouse
+import random
+from pynput import mouse, keyboard
 from pynput.mouse import Button, Listener
-from scipy import signal
-from scipy.stats import pearsonr
+from scipy.interpolate import CubicSpline
+
+KEY_MAP = {
+    'TAB': win32con.VK_TAB,
+    'ENTER': win32con.VK_RETURN,
+    'CTRL': win32con.VK_CONTROL,
+    'CTRL_L': win32con.VK_LCONTROL,
+    'CTRL_R': win32con.VK_RCONTROL,
+    'SHIFT': win32con.VK_SHIFT,
+    'SHIFT_L': win32con.VK_LSHIFT,
+    'SHIFT_R': win32con.VK_RSHIFT,
+    'ALT': win32con.VK_MENU,
+    'ALT_L': win32con.VK_LMENU,
+    'ALT_R': win32con.VK_RMENU,
+    'CAPS_LOCK': win32con.VK_CAPITAL,
+    'ESC': win32con.VK_ESCAPE,
+    'SPACE': win32con.VK_SPACE,
+    'LEFT': win32con.VK_LEFT,
+    'UP': win32con.VK_UP,
+    'RIGHT': win32con.VK_RIGHT,
+    'DOWN': win32con.VK_DOWN,
+    'DELETE': win32con.VK_DELETE,
+    'BACKSPACE': win32con.VK_BACK,
+    'INSERT': win32con.VK_INSERT,
+    'HOME': win32con.VK_HOME,
+    'END': win32con.VK_END,
+    'PAGE_UP': win32con.VK_PRIOR,
+    'PAGE_DOWN': win32con.VK_NEXT,
+    **{f'F{i}': getattr(win32con, f'VK_F{i}') for i in range(1, 13)},
+    **{f'NUMPAD_{i}': getattr(win32con, f'VK_NUMPAD{i}') for i in range(10)},
+}
+
 
 class MouseController:
     """Controlador do mouse usando win32api"""
@@ -91,6 +128,8 @@ class RecoilSettings:
     """Configurações do sistema de recoil"""
     
     def __init__(self):
+        self.language = "en"
+        self.discord_user_id: Optional[str] = None
         self.shoot_delay = 0.01
         self.max_shots = 1000
         self.smoothing_factor: float = 0.5
@@ -110,27 +149,22 @@ class RecoilSettings:
         self.secondary_recoil_x = 0.0
 
         self.secondary_weapon_enabled = False
+        self.show_about_on_startup = True
+
+        self.t_bag_hotkey: List[str] = ['F11']
+        self.t_bag_enabled: bool = False
+        self.t_bag_delay: float = 0.05
+        self.t_bag_key: str = 'C'
+        self.active_weapon: str = 'primary'
 
 
     def to_dict(self):
-        """Converte as configurações para um dicionário para serialização."""
-        return {
-            "shoot_delay": self.shoot_delay,
-            "max_shots": self.max_shots,
-            "smoothing_factor": self.smoothing_factor,
-            "sensitivity": self.sensitivity,
-            "max_movement": self.max_movement,
-            "timeout": self.timeout,
-            "primary_weapon_hotkey": self.primary_weapon_hotkey,
-            "primary_weapon_hotkey_2": self.primary_weapon_hotkey_2,
-            "secondary_weapon_hotkey": self.secondary_weapon_hotkey,
-            "secondary_weapon_hotkey_2": self.secondary_weapon_hotkey_2,
-            "secondary_weapon_enabled": self.secondary_weapon_enabled,
-        }
+        """Converts settings to a dictionary for serialization."""
+        return {k: v for k, v in self.__dict__.items()}
 
     @classmethod
     def from_dict(cls, data):
-        """Cria uma instância de RecoilSettings a partir de um dicionário."""
+        """Creates a RecoilSettings instance from a dictionary."""
         settings = cls()
         for key, value in data.items():
             if hasattr(settings, key):
@@ -138,7 +172,7 @@ class RecoilSettings:
         return settings
 
 class RecoilController:
-    """Controlador principal do sistema de recoil"""
+    """Main controller for the recoil system"""
     
     def __init__(self):
         self.settings = RecoilSettings()
@@ -160,8 +194,12 @@ class RecoilController:
         self._recoil_lock = threading.Lock()
         
         self._recoil_correction_thread = None 
+        self._t_bag_thread = None
+        self.t_bag_active = False
         
         self.shot_count = 0
+        self.active_weapon = "primary"
+
         self.session_stats = {
             'total_shots': 0,
             'total_corrections': 0,
@@ -171,82 +209,110 @@ class RecoilController:
         
         self.logger = logging.getLogger(__name__)
 
-    def set_recoil_x(self, value: float):
-        """Atualiza o valor do recoil horizontal que está sendo ativamente aplicado (base_recoil_x)."""
-        with self._recoil_lock:
-            self.base_recoil_x = value
-            self.logger.info(f"[RecoilController] Recoil X ativo atualizado para: {value:.2f}")
+    def _get_key_string(self, key):
+        """Converts a pynput key object to a string."""
+        try:
+            return key.char.upper()
+        except AttributeError:
+            return str(key).replace('Key.', '').upper()
+
+    def set_recoil_x(self, recoil_x):
+        self.base_recoil_x = recoil_x
 
     def set_recoil_y(self, value: float):
-        """Atualiza o valor do recoil vertical que está sendo ativamente aplicado (base_recoil_y)."""
+        """Updates the active vertical recoil value (base_recoil_y)."""
         with self._recoil_lock:
             self.base_recoil_y = value
-            self.logger.info(f"[RecoilController] Recoil Y ativo atualizado para: {value:.2f}")
+            self.logger.info(f"[RecoilController] Active Recoil Y updated to: {value:.2f}")
         
     def start(self):
-        """Inicia o sistema"""
+        """Starts the system."""
         self.script_running = True
-        self.logger.info("[RecoilController] Iniciando listener do mouse...")
+        self.logger.info("[RecoilController] Starting mouse listener...")
         self.mouse_listener.start_listening()
-        self.logger.info("[RecoilController] Sistema de recoil iniciado.")
+        self.logger.info("[RecoilController] Recoil system started.")
         
     def stop(self):
-        """Para o sistema"""
+        """Stops the system."""
         self.script_running = False
-        self.logger.info("[RecoilController] Parando listener do mouse...")
+        self.logger.info("[RecoilController] Stopping mouse listener...")
         self.mouse_listener.stop_listening()
-        self.logger.info("[RecoilController] Sistema de recoil parado.")
+        self.logger.info("[RecoilController] Recoil system stopped.")
         
     def _on_mouse_click(self, x, y, button, pressed):
-        """Callback para cliques do mouse"""
-        self.logger.info(f"[RecoilController] Clique do mouse: {button} - Pressionado: {pressed}");
+        """Callback for mouse clicks"""
+        self.logger.info(f"[RecoilController] Mouse click: {button} - Pressed: {pressed}");
         if button == Button.right:
             self.rbutton_held = pressed
-            self.logger.debug(f"[RecoilController] Botão direito: {self.rbutton_held}");
+            self.logger.debug(f"[RecoilController] Right button: {self.rbutton_held}");
         elif button == Button.left:
             self.lbutton_held = pressed
-            self.logger.debug(f"[RecoilController] Botão esquerdo: {self.lbutton_held}");
+            self.logger.debug(f"[RecoilController] Left button: {self.lbutton_held}");
             
         if self.rbutton_held and self.lbutton_held:
             if not (self._recoil_correction_thread and self._recoil_correction_thread.is_alive()):
-                self.logger.info("[RecoilController] Ambos os botões (direito e esquerdo) pressionados. Iniciando correção de recoil...")
+                self.logger.info("[RecoilController] Both buttons (right and left) pressed. Starting recoil correction...")
                 self._start_recoil_correction()
         elif not (self.rbutton_held and self.lbutton_held):
             if self._recoil_correction_thread and self._recoil_correction_thread.is_alive():
-                self.logger.info("[RecoilController] Um dos botões (direito ou esquerdo) foi solto. Parando correção de recoil...")
+                self.logger.info("[RecoilController] One of the buttons (right or left) released. Stopping recoil correction...")
                 self._stop_recoil_correction()
     
     def _on_mouse_move(self, x, y):
-        """Callback para movimento do mouse"""
+        """Callback for mouse movement"""
         self.mouse_controller.update_position()
 
     
+    def _get_eased_progress(self, current_shot, max_shots, speed):
+        """Calculates eased progress along the path based on speed."""
+        if current_shot > max_shots:
+            current_shot = max_shots
+        progress = float(current_shot) / float(max_shots)
+
+        if speed == 1.0:
+            return progress
+
+        if speed > 1.0:
+            return 1.0 - (1.0 - progress) ** speed
+        else:
+            exponent = 1.0 / speed
+            return progress ** exponent
+
     def _start_recoil_correction(self):
-        """Inicia correção de recoil"""
+        """Starts recoil correction"""
         if not self._recoil_correction_thread or not self._recoil_correction_thread.is_alive():
-            self.logger.info("[RecoilController] Iniciando thread de correção de recoil.")
+            self.logger.info("[RecoilController] Starting recoil correction thread.")
             self.script_running = True
+            self.shot_count = 0
+            self.previous_cumulative_y = 0.0
+            self.previous_cumulative_x = 0.0
+            self.correction_start_time = time.time()
+            self.horizontal_shot_count = 0
+            self.horizontal_started = False
             self._recoil_correction_thread = threading.Thread(target=self._recoil_correction_loop, daemon=True)
             self._recoil_correction_thread.start()
         else:
-            self.logger.info("[RecoilController] Thread de correção de recoil já está ativa.")
+            self.logger.info("[RecoilController] Recoil correction thread is already active.")
 
     def _stop_recoil_correction(self):
-        """Para correção de recoil"""
-        self.logger.info("[RecoilController] Parando thread de correção de recoil.")
+        """Stops recoil correction"""
+        self.logger.info("[RecoilController] Stopping recoil correction thread.")
         self.script_running = False
 
     def _recoil_correction_loop(self):
-        """Loop de correção de recoil"""
-        self.logger.info("[RecoilController] Loop de correção de recoil iniciado.")
+        """Recoil correction loop"""
+        self.logger.info("[RecoilController] Recoil correction loop started.")
         try:
             while self.script_running and self.rbutton_held and self.lbutton_held:
+                self.shot_count += 1
+                self.logger.debug(f"[RecoilController] Shot Count: {self.shot_count}")
+
                 with self._recoil_lock:
                     recoil_y = self.base_recoil_y
                     recoil_x = self.base_recoil_x
 
-                if recoil_y > 0 or recoil_x != 0:
-                    dx, dy = self.get_adjusted_recoil(self.settings.sensitivity)
+                if recoil_y != 0 or recoil_x != 0:
+                    dx, dy = self.get_adjusted_recoil(self.settings.sensitivity, recoil_x, recoil_y)
 
                     dx = max(-self.settings.max_movement, min(self.settings.max_movement, dx))
                     dy = max(-self.settings.max_movement, min(self.settings.max_movement, dy))
@@ -254,24 +320,57 @@ class RecoilController:
                     if abs(dx) > 0.01 or abs(dy) > 0.01:
                         self.mouse_controller.move(dx, dy)
                         self._last_correction = (dx, dy)
-                        self.logger.debug(f"[RecoilController] Aplicando correção: dx={dx:.2f}, dy={dy:.2f}")
+                        self.logger.debug(f"[RecoilController] Applying correction: dx={dx:.2f}, dy={dy:.2f}")
 
                 time.sleep(self.settings.shoot_delay)
         except Exception as e:
-            self.logger.error(f"[RecoilController] Erro inesperado no loop de correção de recoil: {e}")
+            self.logger.error(f"[RecoilController] Unexpected error in recoil correction loop: {e}")
         finally:
-            self.logger.info("[RecoilController] Loop de correção de recoil encerrado.")
+            self.logger.info("[RecoilController] Recoil correction loop ended.")
 
-    def get_adjusted_recoil(self, factor: float) -> Tuple[float, float]:
-        """Calcula correção de recoil ajustada usando base_recoil_x e base_recoil_y"""
+    def start_t_bag(self):
+        if not self.settings.t_bag_enabled:
+            return
         
-        with self._recoil_lock:
-            base_horizontal = self.base_recoil_x
-            base_vertical = self.base_recoil_y
-            self.logger.info(f"Calculando recoil - Base H: {base_horizontal:.2f}, Base V: {base_vertical:.2f}, Fator: {factor:.2f}")
+        if not self.t_bag_active:
+            self.t_bag_active = True
+            if not self._t_bag_thread or not self._t_bag_thread.is_alive():
+                self._t_bag_thread = threading.Thread(target=self._t_bag_loop, daemon=True)
+                self._t_bag_thread.start()
+                self.logger.info("T-bag thread started.")
+
+    def stop_t_bag(self):
+        if self.t_bag_active:
+            self.t_bag_active = False
+            self.logger.info("T-bag thread stopped.")
+
+    def _t_bag_loop(self):
+        key_str = self.settings.t_bag_key.upper()
+        vk_code = KEY_MAP.get(key_str)
+
+        if vk_code is None:
+            try:
+                vk_code = win32api.VkKeyScan(key_str[0]) & 0xff
+            except Exception:
+                self.logger.error(f"Could not get virtual key code for T-bag key: {key_str}")
+                vk_code = win32con.VK_C
+
+        if vk_code is None:
+             self.logger.error(f"Could not determine vk_code for {key_str}, defaulting to C")
+             vk_code = win32con.VK_C
+
+        while self.t_bag_active:
+            scan_code = win32api.MapVirtualKey(vk_code, 0)
+            win32api.keybd_event(vk_code, scan_code, 0, 0)
+            time.sleep(self.settings.t_bag_delay)
+            win32api.keybd_event(vk_code, scan_code, win32con.KEYEVENTF_KEYUP, 0)
+            time.sleep(self.settings.t_bag_delay)
+
+    def get_adjusted_recoil(self, factor: float, recoil_x: float, recoil_y: float) -> Tuple[float, float]:
+        """Calculates adjusted recoil correction using provided recoil_x and recoil_y."""
         
-        adjusted_horizontal = base_horizontal * factor * self.settings.sensitivity
-        adjusted_vertical = base_vertical * factor * self.settings.sensitivity
+        adjusted_horizontal = recoil_x * factor
+        adjusted_vertical = recoil_y * factor
         
         self._last_correction = (adjusted_horizontal, adjusted_vertical)
         
@@ -282,14 +381,43 @@ class RecoilController:
         
         return (adjusted_horizontal, adjusted_vertical)
 
+    def get_sensitivity_adjusted_recoil(self, recoil_value):
+        """Applies sensitivity scaling to a raw recoil value."""
+        dpi_factor = 800 / self.settings.mouse_dpi 
+        game_sens_factor = 5.0 / self.settings.game_sensitivity
+
+        adjusted_value = recoil_value * dpi_factor * self.settings.sensitivity
+        
+        return adjusted_value
+
+    def move_mouse(self, dx, dy):
+        if not self.script_running:
+            return
+
+        scaled_dx = self.get_sensitivity_adjusted_recoil(dx)
+        scaled_dy = self.get_sensitivity_adjusted_recoil(dy)
+
+        current_x, current_y = win32api.GetCursorPos()
+        new_x = int(current_x + scaled_dx)
+        new_y = int(current_y + scaled_dy)
+
+        max_movement = self.settings.max_movement
+        if max_movement > 0:
+            if abs(new_x - current_x) > max_movement:
+                new_x = current_x + max_movement if new_x > current_x else current_x - max_movement
+            if abs(new_y - current_y) > max_movement:
+                new_y = current_y + max_movement if new_y > current_y else current_y - max_movement
+
+        win32api.mouse_event(win32con.MOUSEEVENTF_MOVE, new_x - current_x, new_y - current_y, 0, 0)
+
     def set_agent_scope(self, agent: str, scope: str):
-        """Define o agente e o escopo atuais."""
+        """Sets the current agent and scope."""
         self.current_agent = agent
         self.current_scope = scope
-        self.logger.info(f"Agente definido para: {agent}, Escopo para: {scope}")
+        self.logger.info(f"Agent set to: {agent}, Scope set to: {scope}")
 
     def get_session_stats(self) -> Dict:
-        """Retorna as estatísticas da sessão atual."""
+        """Returns current session statistics."""
         return {
             'total_shots': self.session_stats['total_shots'],
             'total_corrections': self.session_stats['total_corrections'],
@@ -301,13 +429,13 @@ def run_recoil_controller_standalone():
     import os
     controller = RecoilController()
     controller.start()
-    controller.logger.info(f"RecoilController iniciado. PID: {os.getpid()}")
+    controller.logger.info(f"RecoilController started. PID: {os.getpid()}")
     try:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
         controller.stop()
-        logging.info("RecoilController parado via KeyboardInterrupt.")
+        logging.info("RecoilController stopped via KeyboardInterrupt.")
 
 if __name__ == "__main__":
     logging.basicConfig(
@@ -321,4 +449,4 @@ if __name__ == "__main__":
     console_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
     logging.getLogger().addHandler(console_handler)
 
-    run_recoil_controller_standalone() 
+    run_recoil_controller_standalone()
